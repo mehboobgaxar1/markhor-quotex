@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markhor Signals – CALL / PUT Technical Signals</title>
+<meta name="description" content="Markhor Signals: indicator-based CALL / PUT suggestions for forex, metals, stocks and crypto with an honest live backtest.">
+<style>
+:root{--bg:#0a0e17;--bg2:#101726;--card:rgba(255,255,255,.04);--bd:rgba(255,255,255,.09);--tx:#eef2f9;--mu:#8d99ae;--up:#2ee59d;--dn:#ff5c6c;--ac:#f5b942;--sel:#141c2e}
+@media(prefers-color-scheme:light){:root{--bg:#f3f5fa;--bg2:#e6ebf6;--card:rgba(255,255,255,.85);--bd:rgba(20,30,60,.1);--tx:#101828;--mu:#5b6677;--up:#07935a;--dn:#d6283b;--ac:#b27a0a;--sel:#fff}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+ background:radial-gradient(900px 500px at 15% -10%,rgba(245,185,66,.14),transparent 60%),radial-gradient(800px 500px at 100% 0,rgba(46,229,157,.10),transparent 55%),linear-gradient(var(--bg),var(--bg2))}
+.w{max-width:860px;margin:0 auto;padding:22px 16px 40px}
+.brand{display:flex;align-items:center;gap:14px;margin:6px 0 22px}
+.logo{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#f5b942,#e0742b);box-shadow:0 8px 24px rgba(245,185,66,.35)}
+.logo svg{width:28px;height:28px}
+.brand h1{margin:0;font-size:28px;letter-spacing:.3px;line-height:1.1}
+.brand h1 span{color:var(--ac)}
+.brand p{margin:2px 0 0;color:var(--mu);font-size:13.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;margin-bottom:16px;backdrop-filter:blur(8px)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{font-size:11.5px;color:var(--mu);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:var(--sel);color:var(--tx);font-size:15px;outline:none}
+select:focus{border-color:var(--ac)}
+.warn{display:none;margin-bottom:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(245,185,66,.4);background:rgba(245,185,66,.1);color:var(--ac);font-size:13.5px}
+.sig{text-align:center;padding:30px 14px 22px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.sig[data-s=call]{border-color:var(--up);box-shadow:0 0 50px -12px var(--up)}
+.sig[data-s=put]{border-color:var(--dn);box-shadow:0 0 50px -12px var(--dn)}
+.ic{width:92px;height:92px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--bd);background:var(--card);transition:all .3s}
+.ic svg{width:46px;height:46px}
+.sig[data-s=call] .ic{border-color:var(--up);background:rgba(46,229,157,.12);color:var(--up)}
+.sig[data-s=put] .ic{border-color:var(--dn);background:rgba(255,92,108,.12);color:var(--dn)}
+.sig[data-s=none] .ic{color:var(--mu)}
+.sb{font-size:13px;color:var(--mu);letter-spacing:2px;min-height:20px}
+.chip{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--card);font-size:12px;color:var(--ac)}
+.pair{font-size:13px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
+.big{font-size:clamp(40px,11vw,64px);font-weight:800;letter-spacing:1.5px;margin:6px 0 4px;line-height:1.1}
+.CALL{color:var(--up)}.PUT{color:var(--dn)}.WAIT{color:var(--mu)}
+.timer{display:inline-block;margin-top:6px;padding:6px 14px;border-radius:99px;border:1px solid var(--bd);font-size:13.5px;color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
+.m{border:1px solid var(--bd);border-radius:14px;padding:12px 8px;text-align:center;background:var(--card)}
+.m b{display:block;font-size:18px}.m span{font-size:11.5px;color:var(--mu)}
+.h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;margin-bottom:2px}
+.h i{width:8px;height:8px;border-radius:50%;background:var(--ac);display:inline-block}
+.sub{color:var(--mu);margin:0 0 14px;font-size:13.5px}
+.bt{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.verdict{margin-top:14px;padding:13px 14px;border-radius:12px;border:1px solid var(--bd);font-size:14px;background:var(--card)}
+.disc{font-size:12.5px;color:var(--mu);line-height:1.6}
+.disc b{color:var(--tx)}
+.why{list-style:none;margin:16px auto 0;padding:0;max-width:430px;text-align:left;font-size:13.5px;color:var(--mu)}
+.why li{padding:5px 0 5px 22px;position:relative}
+.why li:before{content:"✓";position:absolute;left:0;color:var(--up);font-weight:700}
+.why.none li:before{content:"•";color:var(--mu)}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.dots i{width:22px;height:6px;border-radius:4px;background:var(--bd)}
+.dots i.on{background:var(--ac)}
+.nw{font-size:14px}
+.nw div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.nw div:last-child{border:0}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu);white-space:nowrap}
+.tag.High{color:var(--dn);border-color:var(--dn)}
+.soc{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.soc .wa{margin-top:0}
+.tg{background:#229ed9;box-shadow:0 8px 22px rgba(34,158,217,.3)}
+canvas#ch{width:100%;height:320px;display:block;margin-top:10px}
+.lg{font-size:12px;color:var(--mu);margin-top:8px}
+#q{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--bd);background:var(--sel);color:var(--tx);font-size:15px;outline:none}
+#q:focus{border-color:var(--ac)}
+#srow{grid-column:1/-1;display:none}
+.me{display:block;width:104px;height:104px;margin:0 auto 12px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 10px 28px rgba(245,185,66,.28)}
+.ft{text-align:center;margin-top:26px;font-size:14.5px;color:var(--mu)}
+.ft b{color:var(--tx)}
+.wa{display:inline-flex;align-items:center;gap:9px;margin-top:12px;padding:10px 20px 10px 12px;border-radius:99px;background:#25d366;color:#fff;font-weight:700;text-decoration:none;box-shadow:0 8px 22px rgba(37,211,102,.3);transition:transform .15s}
+.wa:hover{transform:translateY(-2px)}
+.wa svg{width:26px;height:26px}
+@media(max-width:480px){.grid{gap:8px}.m b{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="w">
+
+<div class="brand">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6l8 9 8-9v13"/></svg>
+  </div>
+  <div>
+    <h1>Markhor <span>Signals</span></h1>
+    <p>Smart CALL / PUT signals for forex, metals, stocks and crypto, backed by an honest backtest.</p>
+    <span class="chip">Signals for Quotex traders</span>
+  </div>
+</div>
+
+<div class="card"><div class="row">
+  <div><label>Market</label><select id="mk"><option value="fx">Forex</option><option value="mt">Metals</option><option value="cr">Crypto</option><option value="st">Stocks</option></select></div>
+  <div><label>Symbol</label><select id="sym"></select></div>
+  <div id="srow"><label>Search any company</label><input id="q" placeholder="Type a company name or ticker, e.g. Tesla or NVDA" autocomplete="off"></div>
+  <div><label>Candle</label><select id="tf"><option value="1min">1 minute</option><option value="5min" selected>5 minutes</option><option value="15min">15 minutes</option></select></div>
+  <div><label>Expiry (candles)</label><select id="ex"><option>1</option><option selected>3</option><option>5</option><option>10</option></select></div>
+  <div><label>Strictness</label><select id="st"><option value="30">Strict (5 of 7 checks)</option><option value="35" selected>Balanced (4 of 7)</option><option value="40">Relaxed (3 of 7)</option></select></div>
+</div></div>
+
+<div class="warn" id="warn"></div>
+
+<div class="card sig" id="sc" data-s="none">
+  <div class="ic" id="ic"></div>
+  <div class="pair" id="pr">–</div>
+  <div class="big WAIT" id="sg">…</div>
+  <div class="sb" id="sb"></div>
+  <div class="dots" id="dots"></div>
+  <ul class="why" id="why"></ul>
+  <div class="timer" id="cd">Loading data…</div>
+  <div class="grid">
+    <div class="m"><b id="vr">–</b><span>RSI (14)</span></div>
+    <div class="m"><b id="vt">–</b><span>Trend</span></div>
+    <div class="m"><b id="vb">–</b><span>Bollinger</span></div>
+  </div>
+</div>
+
+<div class="card" id="cc">
+  <div class="h"><i></i><span id="ct">Chart</span></div>
+  <canvas id="ch"></canvas>
+  <div class="lg">Real candles, last 80 · <span style="color:#f5b942">■</span> EMA 20 · <span style="color:#4c8dff">■</span> EMA 150 · dashed lines = Bollinger Bands · arrow = current signal</div>
+</div>
+
+<div class="card">
+  <div class="h"><i></i>News check</div>
+  <p class="sub">High and medium impact events for this pair’s currencies. Signals pause around high-impact news.</p>
+  <div class="nw" id="nw">Loading…</div>
+</div>
+
+<div class="card">
+  <div class="h"><i></i>Backtest on recent history</div>
+  <p class="sub">The same rules applied to the last ~1000 candles (news is not replayed). Wins are counted at an 85% payout; ties are refunded. Setup strength counts how many checks agree; it is not a probability of winning.</p>
+  <div class="bt">
+    <div class="m"><b id="bn">–</b><span>Trades</span></div>
+    <div class="m"><b id="bw">–</b><span>Win rate (95% range)</span></div>
+    <div class="m"><b id="bb">–</b><span>Break-even win rate</span></div>
+    <div class="m"><b id="be">–</b><span>Avg result per $1</span></div>
+  </div>
+  <div class="verdict" id="vd"></div>
+</div>
+
+<div class="card disc">
+  <b>Important.</b> Markhor Signals is an educational technical-analysis tool, not financial advice. Signals combine several indicators and a news check to filter weak setups, but they are not guarantees, and no strategy wins reliably on short expiries. Most people who trade binary options lose money, and binary options are restricted or banned for retail traders in many countries (including the EU, UK and Australia). Check your local rules and never risk money you can’t afford to lose. This site is not affiliated with Quotex or any broker. Prices come from a third-party data provider and can differ from your broker’s, and broker-specific OTC pairs are not covered. Metals and stocks depend on your data plan (free plans mainly cover US stocks), and each market has opening hours.
+</div>
+
+<div class="ft">
+  <img class="me" src="images/creator.jpg" alt="Site creator" width="104" height="104" loading="lazy">
+  Created By <b>Mehboob Ahmad</b><br>
+  <div class="soc">
+    <a class="wa" href="https://wa.me/923016955911" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24"><path d="M12 1a11 11 0 0 0-9.4 16.7L1 23l5.4-1.6A11 11 0 1 0 12 1z" fill="#fff"/><path transform="translate(5.6 5.6) scale(.5)" fill="#25d366" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+    WhatsApp
+  </a>
+    <a class="wa tg" href="https://t.me/Markhorpro" target="_blank" rel="noopener" aria-label="Chat on Telegram"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff"/><path fill="#229ed9" d="M5.4 11.9 17.6 7.2c.6-.2 1.1.1.9.8l-2 9.2c-.1.6-.5.8-1 .5l-2.9-2.1-1.4 1.4c-.2.2-.3.3-.6.3l.2-3 5.4-4.9c.2-.2-.1-.3-.3-.1l-6.7 4.2-2.9-.9c-.6-.2-.6-.6.1-.9z"/></svg>Telegram</a>
+  </div>
+</div>
+
+</div>
+
+<script src="engine.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const PAYOUT=0.85,TF={'1min':60,'5min':300,'15min':900},MIN={30:5,35:4,40:3};
+const PAIRS=['EUR/USD','GBP/USD','USD/JPY','USD/CHF','AUD/USD','USD/CAD','NZD/USD','EUR/GBP','EUR/JPY','EUR/CHF','EUR/AUD','EUR/CAD','EUR/NZD','GBP/JPY','GBP/CHF','GBP/AUD','GBP/CAD','GBP/NZD','AUD/JPY','AUD/CAD','AUD/CHF','AUD/NZD','CAD/JPY','CAD/CHF','CHF/JPY','NZD/JPY','NZD/CAD','NZD/CHF','BTC/USD','ETH/USD'];
+const LIST={fx:PAIRS.map(p=>[p,p]),
+ mt:[['XAU/USD','Gold (XAU/USD)'],['XAG/USD','Silver (XAG/USD)'],['XPT/USD','Platinum (XPT/USD)'],['XPD/USD','Palladium (XPD/USD)']],
+ cr:['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','LTC'].map(c=>[c+'/USD',c+'/USD']),
+ st:[['AAPL','Apple (AAPL)'],['MSFT','Microsoft (MSFT)'],['GOOGL','Alphabet (GOOGL)'],['AMZN','Amazon (AMZN)'],['NVDA','NVIDIA (NVDA)'],['META','Meta (META)'],['TSLA','Tesla (TSLA)'],['NFLX','Netflix (NFLX)'],['AMD','AMD (AMD)'],['INTC','Intel (INTC)'],['JPM','JPMorgan (JPM)'],['V','Visa (V)'],['MA','Mastercard (MA)'],['WMT','Walmart (WMT)'],['DIS','Disney (DIS)'],['KO','Coca-Cola (KO)'],['PEP','PepsiCo (PEP)'],['NKE','Nike (NKE)'],['BA','Boeing (BA)'],['XOM','ExxonMobil (XOM)']]};
+function fill(){const m=$('mk').value;$('sym').innerHTML=LIST[m].map(([v,l])=>`<option value="${v}">${l}</option>`).join('');$('srow').style.display=m==='st'?'block':'none'}
+fill();
+let nextClose=0,timer=null,retryT=null;
+const ARW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">';
+const DASH=ARW+'<path d="M5 12h14"/></svg>';
+const isCrypto=s=>/^(BTC|ETH|SOL|XRP|BNB|ADA|DOGE|LTC)\//.test(s);
+const isMetal=s=>/^X(AU|AG|PT|PD)\//.test(s);
+const isFx=s=>s.includes('/')&&!isCrypto(s)&&!isMetal(s);
+const cur=s=>isFx(s)?s.split('/'):['USD'];
+
+function setCard(s,title,badge,why,sc,wait,none){
+ $('sg').textContent=title;$('sg').className='big '+(s===1?'CALL':s===-1?'PUT':'WAIT');
+ $('sc').dataset.s=s===1?'call':s===-1?'put':'none';$('sb').textContent=badge;
+ $('ic').innerHTML=s===1?ARW+'<path d="M12 20V5M5 11l7-7 7 7"/></svg>':s===-1?ARW+'<path d="M12 4v15M5 13l7 7 7-7"/></svg>':DASH;
+ $('dots').innerHTML=s?Array.from({length:7},(_,k)=>`<i class="${k<sc?'on':''}"></i>`).join(''):'';
+ const ul=$('why');ul.className='why'+(s?'':' none');ul.innerHTML='';
+ why.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li)});
+ if(wait)$('cd').textContent=wait}
+let last=null;
+function draw(x,s){
+ const cv=$('ch'),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=320;if(!W)return;
+ cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);
+ const cs=getComputedStyle(document.documentElement),col=n=>cs.getPropertyValue(n).trim();
+ const N=80,n=x.c.length,st=n-N;let mn=1e99,mx=-1e99;
+ for(let i=st;i<n;i++){mn=Math.min(mn,x.l[i],x.lo[i]==null?1e99:x.lo[i]);mx=Math.max(mx,x.h[i],x.hi[i]==null?-1e99:x.hi[i])}
+ const pd=(mx-mn)*0.06;mn-=pd;mx+=pd;
+ const pr=68,top=8,bot=H-8,cw=(W-pr)/N,Y=v=>top+(mx-v)/(mx-mn)*(bot-top),X=i=>(i-st+.5)*cw,dec=x.c[n-1]>1000?2:x.c[n-1]>50?3:5;
+ g.font='11px system-ui';g.fillStyle=col('--mu');g.strokeStyle=col('--bd');g.lineWidth=1;
+ for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4,y=Y(v);g.beginPath();g.moveTo(0,y);g.lineTo(W-pr,y);g.stroke();g.fillText(v.toFixed(dec),W-pr+6,y+4)}
+ const line=(a,c,dash)=>{g.strokeStyle=c;g.setLineDash(dash?[4,4]:[]);g.beginPath();let on=false;
+  for(let i=st;i<n;i++){if(a[i]==null)continue;const px=X(i),py=Y(a[i]);on?g.lineTo(px,py):g.moveTo(px,py);on=true}g.stroke();g.setLineDash([])};
+ line(x.lo,col('--mu'),1);line(x.hi,col('--mu'),1);line(x.e20,'#f5b942');line(x.e150,'#4c8dff');
+ for(let i=st;i<n;i++){const c=x.c[i]>=x.o[i]?col('--up'):col('--dn'),px=X(i);
+  g.strokeStyle=c;g.fillStyle=c;g.beginPath();g.moveTo(px,Y(x.h[i]));g.lineTo(px,Y(x.l[i]));g.stroke();
+  const y1=Y(Math.max(x.o[i],x.c[i])),y2=Y(Math.min(x.o[i],x.c[i]));g.fillRect(px-cw*0.35,y1,cw*0.7,Math.max(1,y2-y1))}
+ if(s){const px=X(n-1),py=s===1?Y(x.l[n-1])+16:Y(x.h[n-1])-16;g.fillStyle=s===1?col('--up'):col('--dn');
+  g.beginPath();if(s===1){g.moveTo(px,py-9);g.lineTo(px-7,py+3);g.lineTo(px+7,py+3)}else{g.moveTo(px,py+9);g.lineTo(px-7,py-3);g.lineTo(px+7,py-3)}g.fill()}}
+window.addEventListener('resize',()=>last&&draw(last.x,last.s));
+
+function showState(title,badge,note,ms,wait){
+ clearInterval(timer);$('warn').style.display='none';$('cc').style.display='none';last=null;$('pr').textContent=$('sym').value.split('@')[0];
+ setCard(0,title,badge,[],0,wait);
+ ['vr','vt','vb','bn','bw','bb','be'].forEach(id=>$(id).textContent='–');
+ $('vd').textContent=note;retryT=setTimeout(load,ms)}
+function showDown(m){const ok=m&&!/error|fetch|JSON|Unexpected|Failed/i.test(m);
+ showState('Updating…','WAITING FOR LIVE MARKET DATA',(ok?m+' ':'')+'No signal is shown without live market data. Retrying automatically.',30000,'Retrying in 30 seconds')}
+function showClosed(){showState('Market Closed','THIS MARKET IS CLOSED RIGHT NOW','No fresh prices to analyse. Forex and metals close on weekends and stocks trade only during exchange hours. Crypto trades 24/7, so try BTC/USD or ETH/USD.',300000,'Checking again in 5 minutes');$('nw').textContent='Paused while the market is closed.'}
+
+function hotEvent(sym,ev,mins){const c=cur(sym),n=Date.now();
+ return ev.find(e=>e.i==='High'&&c.includes(e.c)&&e.t>n-30*60000&&e.t<n+Math.max(30,mins+10)*60000)}
+function renderNews(sym,ev){const box=$('nw');box.innerHTML='';
+ if(!ev){box.textContent='News data is unavailable right now, so signals are NOT filtered for news. Check an economic calendar before trading.';return}
+ const c=cur(sym),up=ev.filter(e=>c.includes(e.c)&&e.t>Date.now()-30*60000).sort((a,b)=>a.t-b.t).slice(0,5);
+ if(!up.length){box.textContent='No high or medium impact news left this week for '+c.join(' / ')+'.';return}
+ up.forEach(e=>{const d=document.createElement('div'),l=document.createElement('span'),t=document.createElement('span');
+  l.textContent=new Date(e.t).toLocaleString([],{weekday:'short',hour:'2-digit',minute:'2-digit'})+' · '+e.c+' · '+e.n;
+  t.className='tag '+e.i;t.textContent=e.i;d.appendChild(l);d.appendChild(t);box.appendChild(d)})}
+
+async function load(){
+ clearTimeout(retryT);
+ const sym=$('sym').value,tf=$('tf').value,ex=+$('ex').value,lowR=+$('st').value,P={rsi:lowR,min:MIN[lowR],step:TF[tf]*1000};
+ let cs;
+ try{
+  const r=await fetch(`/.netlify/functions/candles?symbol=${encodeURIComponent(sym)}&interval=${tf}`);
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'error');
+  cs=d.map(v=>({t:Date.parse(v.datetime.replace(' ','T')+'Z'),o:+v.open,h:+v.high,l:+v.low,c:+v.close}));
+  const lc=cs.pop();nextClose=lc.t+TF[tf]*1000;
+  if(Date.now()-lc.t>TF[tf]*3000){showClosed();return}
+ }catch(e){showDown(e.message);return}
+ let ev=null;try{const r=await fetch('/.netlify/functions/news'),d=await r.json();if(d.ok)ev=d.events}catch(e){}
+ renderNews(sym,ev);
+ $('warn').style.display='none';
+ const x=calc(cs),i=x.c.length-1,res=evalAt(x,i,P);
+ let s=res.s,why=res.why,block=res.block;
+ const hot=ev&&hotEvent(sym,ev,ex*TF[tf]/60);
+ const hr=new Date(nextClose).getUTCHours();
+ if(hot){s=0;why=[];block='High-impact news: '+hot.c+' '+hot.n}
+ else if(isFx(sym)&&hr>=21&&hr<23){s=0;why=[];block='Low-liquidity rollover hour'}
+ $('pr').textContent=sym.split('@')[0]+' · '+$('tf').selectedOptions[0].text;
+ $('ct').textContent=sym.split('@')[0]+' · '+$('tf').selectedOptions[0].text;$('cc').style.display='block';last={x,s};draw(x,s);
+ if(s)setCard(s,s===1?'UP':'DOWN',(s===1?'CALL':'PUT')+' · SETUP STRENGTH '+res.sc+'/7',why,res.sc);
+ else setCard(0,hot?'NEWS WINDOW':'NO SIGNAL','PAUSED',[block||'Waiting for a high-quality setup'],0);
+ $('vr').textContent=x.r[i].toFixed(1);
+ $('vt').textContent=x.e60[i]>x.e150[i]?'Up ▲':'Down ▼';
+ $('vb').textContent=x.c[i]<x.lo[i]?'Below lower':x.c[i]>x.hi[i]?'Above upper':'Inside bands';
+ const b=backtest(x,ex,P,PAYOUT),be=1/(1+PAYOUT),[lo,hi]=wilson(b.w,b.n),wr=b.n?b.w/b.n:0;
+ $('bn').textContent=b.n;
+ $('bw').textContent=b.n?`${(wr*100).toFixed(1)}% (${(lo*100).toFixed(0)}–${(hi*100).toFixed(0)}%)`:'–';
+ $('bb').textContent=(be*100).toFixed(1)+'%';
+ $('be').textContent=b.n?(b.pnl/b.n>=0?'+':'')+(b.pnl/b.n).toFixed(3):'–';
+ $('vd').textContent=b.n<30?'Too few trades to conclude anything. Try Relaxed strictness or a longer expiry.':
+  lo>be?'Rules beat break-even on this sample. This is in-sample history only, so it is not proof of a future edge.':
+  'No proven edge: the win-rate range includes or falls below break-even. Treat signals as unreliable.';
+ startTimer();
+}
+function startTimer(){clearInterval(timer);timer=setInterval(()=>{
+ const s=Math.max(0,Math.round((nextClose-Date.now())/1000));
+ $('cd').textContent=`Candle closes in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+ if(s===0){clearInterval(timer);setTimeout(load,2000)}},1000)}
+['sym','tf','ex','st'].forEach(id=>$(id).addEventListener('change',load));
+$('mk').addEventListener('change',()=>{fill();load()});
+let qt=null;
+$('q').addEventListener('input',()=>{clearTimeout(qt);const v=$('q').value.trim();if(v.length<2)return;
+ qt=setTimeout(async()=>{try{
+  const r=await fetch('/.netlify/functions/search?q='+encodeURIComponent(v)),d=await r.json();if(!r.ok)throw 0;
+  const sel=$('sym');sel.innerHTML='';
+  if(!d.length){const o=document.createElement('option');o.textContent='No results';sel.appendChild(o);return}
+  d.forEach(x=>{const o=document.createElement('option');o.value=x.s+(x.x?'@'+x.x.replace(/[^A-Za-z0-9]/g,''):'');
+   o.textContent=x.s+' · '+x.n+(x.x?' ('+x.x+')':'');sel.appendChild(o)});
+  load();
+ }catch(e){}},450)});
+load();
+</script>
+</body>
+</html>
